@@ -11,6 +11,13 @@ app.use(cors({ origin: true }));
 
 app.use(express.json());
 
+app.use((req, res, next) => {
+  const headers = req.headers;
+  if (headers['x-app-key'] !== process.env.APP_KEY)
+    return res.status(401).json({ msg: 'access denied' });
+  return next();
+});
+
 // Healthcheck endpoint
 app.get('/', (req, res) => {
   res.status(200).send({ status: 'ok' });
@@ -23,7 +30,7 @@ app.get('/users', (req, res) => {
 app.post('/users', (req, res) => {
   const { name, surname, age, car } = req.body as any;
   if (!name || !surname || !age || !car) {
-    return res.status(403).json({ msg: 'bad user data' });
+    return res.status(400).json({ msg: 'bad user data' });
   }
   data.addUser({ name, surname, age, car } as Usr);
   return res.status(200).json(data.users);
